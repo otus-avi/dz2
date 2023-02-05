@@ -1,0 +1,60 @@
+1  fdisk -l
+    2  lshw -short | grep disk
+    3  fdisk -l
+    4  mdadm --zero-superblock --force /dev/sd{b,c,d,e,f}
+    5  mdadm --create --verbose /dev/md0 -l 10 -n 5 /dev/sd{b,c,d,e,f}
+    6  cat /proc/mdstat 
+    7  mdadm -D /dev/md0 
+    8  mdadm --detail --scan --verbose
+    9  echo "DEVICE partitions" > /etc/mdadm/mdadm.conf
+   10  mkdir /etc/mdadm
+   11  echo "DEVICE partitions" > /etc/mdadm/mdadm.conf
+   12  mdadm --detail --scan --verbose | awk '/ARRAY/ {print}' >> /etc/mdadm/mdadm.conf
+   13  mdadm /dev/md0 --fail /dev/sde
+   14  cat /proc/mdstat 
+   15  mdadm -D /dev/md0 
+   16  mdadm /dev/md0 --remove /dev/sde
+   17  mdadm /dev/md0 --add /dev/sde
+   18  cat /proc/mdstat 
+   19  mdadm -D /dev/md0 
+   20  parted -s /dev/md0 mklabel gpt
+   21  parted /dev/md0 mkpart primary ext4 0% 20%
+   22  parted /dev/md0 mkpart primary ext4 20% 40%
+   23  parted /dev/md0 mkpart primary ext4 40% 60%
+   24  parted /dev/md0 mkpart primary ext4 60% 80%
+   25  parted /dev/md0 mkpart primary ext4 80% 100%
+   26  for i in $(seq 1 5); do sudo mkfs.ext4 /dev/md0p$i; done
+   27  mkdir -p /raid/part{1,2,3,4,5}
+   28  for i in $(seq 1 5); do mount /dev/md0p$i /raid/part$i; done
+   29  fdisk -l
+   30  exit
+   31  cat /proc/mdstat 
+   32  exit
+   33  ls -l
+   34  history
+   
+[root@otuslinux ~]# fdisk -l
+
+Disk /dev/md0: 650 MB, 650117120 bytes, 1269760 sectors
+Units = sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 524288 bytes / 2621440 bytes
+Disk label type: gpt
+Disk identifier: 10B8D5BD-C7E8-484F-B682-6456588F0DCF
+
+
+#         Start          End    Size  Type            Name
+ 1         5120       255999  122.5M  Microsoft basic primary
+ 2       256000       506879  122.5M  Microsoft basic primary
+ 3       506880       762879    125M  Microsoft basic primary
+ 4       762880      1013759  122.5M  Microsoft basic primary
+ 5      1013760      1264639  122.5M  Microsoft basic primary
+ 
+ [root@otuslinux ~]# cat /proc/mdstat 
+Personalities : [raid10] 
+md0 : active raid10 sdb[1] sde[4] sdc[2] sda[0] sdd[5]
+      634880 blocks super 1.2 512K chunks 2 near-copies [5/5] [UUUUU]
+      
+unused devices: <none>
+
+
